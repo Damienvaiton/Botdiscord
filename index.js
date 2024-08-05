@@ -64,7 +64,6 @@ client.on(Events.MessageCreate, async (message) => {
 		const voiceChannel = message.guild.channels.cache.find(
 			(channel) => channel.name === "Général"
 		);
-		console.log("message transformer : " + transformedMessage);
 		if (transformedMessage.content === "ping") {
 			message.reply("pong");
 		} else if (
@@ -180,6 +179,19 @@ client.on(Events.MessageCreate, async (message) => {
 			message.reply("Vous avez abandonné ! La bonne réponse était " + answer);
 			delete quizState[message.author.id];
 		}
+	}
+});
+
+// Easter egg
+client.on(Events.MessageCreate, async (message) => {
+	if (message.author.bot) return;
+
+	transformedMessage = message.content.toLowerCase();
+
+	if (transformedMessage === "banane²") {
+		message.reply({
+			files: ["./assets/images/banane.jpg"],
+		});
 	}
 });
 
