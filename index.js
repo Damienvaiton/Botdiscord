@@ -14,8 +14,10 @@ const {
 	VoiceConnectionStatus,
 } = require("@discordjs/voice");
 
+// List of required modules
 const Filter = require("bad-words");
 const axios = require("axios");
+const { CommandKit } = require("commandkit");
 
 // Create a new client instance
 const client = new Client({
@@ -39,6 +41,8 @@ filter.addWords(...insultes);
 
 const quizState = {};
 
+const admin = client.users.cache.get("378634441503014913");
+
 // When the client is ready, run this code (only once).
 // The distinction between `client: Client<boolean>` and `readyClient: Client<true>` is important for TypeScript developers.
 // It makes some properties non-nullable.
@@ -59,6 +63,12 @@ client.on(Events.ClientReady, (readyClient) => {
 client.on(Events.MessageCreate, async (message) => {
 	if (message.author.bot) return;
 	if (message.channel.name === "dev-bot") {
+		console.log(
+			"message received in dev-bot channel from " +
+				message.author.username +
+				" : " +
+				message.content
+		);
 		transformedMessage = message.content.toLowerCase();
 
 		const voiceChannel = message.guild.channels.cache.find(
@@ -188,9 +198,13 @@ client.on(Events.MessageCreate, async (message) => {
 
 	transformedMessage = message.content.toLowerCase();
 
-	if (transformedMessage === "banane²") {
+	if (transformedMessage.includes("banane²")) {
 		message.reply({
 			files: ["./assets/images/banane.jpg"],
+		});
+	} else if (transformedMessage.includes("subway")) {
+		message.reply({
+			files: ["./assets/images/jules.jpg"],
 		});
 	}
 });
@@ -199,6 +213,15 @@ client.on(Events.MessageCreate, async (message) => {
 	if (message.author.bot) return;
 
 	if (filter.isProfane(message.content)) {
+		admin.createDM().then((dm) => {
+			dm.send(
+				"Attention, " +
+					message.author.username +
+					" a envoyé un message insultant : " +
+					message.content
+			);
+		});
+
 		message.delete();
 		setTimeout(() => {
 			message.author.createDM().then((dm) => {
