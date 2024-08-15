@@ -142,7 +142,32 @@ client.on(Events.MessageCreate, async (message) => {
 		message.channel.send("Messages supprimés").then((msg) => {
 			msg.delete({ timeout: 50000 });
 		});
-	} else if (command === "quiz") {
+	} else if (command === "botclear") {
+		if (message.member.permissions.has("Administrator")) {
+			// This command removes all messages from the bot
+			const amount = parseInt(args[0]);
+
+			if (isNaN(amount)) {
+				return message.reply("Il faut entrer un nombre !");
+			} else if (amount <= 1 || amount > 100) {
+				return message.reply(
+					"Il faut entrer un nombre entre 1 et 100 exclus !"
+				);
+			}
+
+			//delete the numer of the message from the bot
+			message.channel.messages.fetch({ limit: amount }).then((messages) => {
+				const botMessages = messages.filter((msg) => msg.author.bot);
+				message.channel.bulkDelete(botMessages);
+			});
+
+			message.channel.send("Messages supprimés").then((msg) => {
+				msg.delete({ timeout: 50000 });
+			});
+		} else {
+			message.reply("Vous n'avez pas les droits pour cette commande");
+		}
+	} else if (command === "quizdrapeau") {
 		axios
 			.get("https://restcountries.com/v3.1/all")
 			.then((response) => {
@@ -153,14 +178,43 @@ client.on(Events.MessageCreate, async (message) => {
 				const capital = randomCountry.capital[0];
 
 				quizState[message.author.id] = {
+					id: 0,
 					countryName,
 					capital,
 					active: true,
+					nbHit: 0,
 				};
 
 				message.channel.send("Quel est le drapeau de ce pays ? ");
 				message.channel.send(flag);
 				message.channel.send("Répondez avec le nom du pays");
+				message.channel.send("Vous pouvez avoir un indice en tapant 'indice'");
+				message.channel.send("Vous pouvez abandonner en tapant 'abandon'");
+
+				//clear the cache
+			})
+			.catch((error) => {
+				console.log(error);
+			});
+	} else if (command === "quizcapital") {
+		axios
+			.get("https://restcountries.com/v3.1/all")
+			.then((response) => {
+				const data = response.data;
+				const randomCountry = data[Math.floor(Math.random() * data.length)];
+				const countryName = randomCountry.name.common;
+				const flag = randomCountry.flags.png;
+				const capital = randomCountry.capital[0];
+
+				quizState[message.author.id] = {
+					id: 1,
+					countryName,
+					capital,
+					active: true,
+					nbHit: 0,
+				};
+
+				message.channel.send("Quel est la capital de ce pays : " + countryName);
 				message.channel.send("Vous pouvez avoir un indice en tapant 'indice'");
 				message.channel.send("Vous pouvez abandonner en tapant 'abandon'");
 
@@ -179,15 +233,44 @@ client.on(Events.MessageCreate, async (message) => {
 
 	const userQuiz = quizState[message.author.id];
 	if (userQuiz && userQuiz.active) {
-		const answer = userQuiz.countryName;
-		if (message.content === answer) {
-			message.reply("Bravo, vous avez trouvé la bonne réponse !");
-			delete quizState[message.author.id];
-		} else if (message.content === "indice") {
-			message.reply("La capitale de ce pays est " + userQuiz.capital);
-		} else if (message.content === "abandon") {
-			message.reply("Vous avez abandonné ! La bonne réponse était " + answer);
-			delete quizState[message.author.id];
+		userQuiz.nbHit += 1;
+		if (userQuiz.id === 0) {
+			const answer = userQuiz.countryName;
+			if (message.content === answer) {
+				message.reply(
+					"Bravo, vous avez trouvé la bonne réponse ! Vous avez trouvé en " +
+						userQuiz.nbHit +
+						" coups"
+				);
+				delete quizState[message.author.id];
+			} else if (message.content === "indice") {
+				message.reply("La capitale de ce pays est " + userQuiz.capital);
+			} else if (message.content === "abandon") {
+				message.reply("Vous avez abandonné ! La bonne réponse était " + answer);
+				delete quizState[message.author.id];
+			}
+		} else if (userQuiz.id === 1) {
+			const answer = userQuiz.capital;
+			if (message.content === answer) {
+				message.reply("Bravo, vous avez trouvé la bonne réponse !");
+			} else if (message.content === "indice") {
+				const len = answer.length;
+				console.log(len);
+				console.log(userQuiz.nbHit);
+				if (userQuiz.nbHit === len - 1) {
+					message.reply(
+						"Malhaueusement il y a plus d'indice. Vous pouvez abandonné si vous ne trouvez pas"
+					);
+				} else {
+					message.reply(
+						"Voici le debut de la réponse:" +
+							answer.substring(0, userQuiz.nbHit + 1)
+					);
+				}
+			} else if (message.content === "abandon") {
+				message.reply("Vous avez abandonné ! La bonne réponse était " + answer);
+				delete quizState[message.author.id];
+			}
 		}
 	}
 });
