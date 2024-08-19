@@ -224,7 +224,26 @@ client.on(Events.MessageCreate, async (message) => {
 				console.log(error);
 			});
 	} else {
-		message.reply("Commande inconnue");
+		const random = Math.floor(Math.random() * 100);
+		if (random === 0) {
+			message.reply("Selon mes calculs, vous avez fait une erreur");
+		} else if (random === 1 || random === 4 || random === 5 || random === 69) {
+			message.reply("https://http.cat/418");
+		} else if (random === 2) {
+			message.reply(
+				"En voilà une commande intéressante , je ne sais pas quoi en penser"
+			);
+		} else if (random === 3 || random === 6 || random === 7) {
+			message.reply(
+				"Selon le theoreme de la Daronne à " +
+					message.author.username +
+					" , vous avez fait une erreur"
+			);
+		} else if (random < 50) {
+			message.reply("https://http.cat/404");
+		} else {
+			message.reply("Commande inconnue");
+		}
 	}
 });
 
