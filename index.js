@@ -25,6 +25,7 @@ const client = new Client({
 		GatewayIntentBits.Guilds,
 		GatewayIntentBits.GuildMessages,
 		GatewayIntentBits.MessageContent,
+		GatewayIntentBits.GuildMembers,
 		GatewayIntentBits.GuildVoiceStates,
 	],
 });
@@ -50,6 +51,8 @@ client.once(Events.ClientReady, (readyClient) => {
 	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 });
 
+//Send a dm to the admin when a people join the server
+
 // Send a message to a specific channel when the client is ready
 
 client.on(Events.ClientReady, (readyClient) => {
@@ -57,6 +60,30 @@ client.on(Events.ClientReady, (readyClient) => {
 		(channel) => channel.name === "dev-bot"
 	);
 	// channel.send("@everyone Je m'appelle Mangeuse de Kinoa et je suis là pour vous servir !");
+});
+
+client.on(Events.GuildMemberAdd, (member) => {
+	if (member.guild.id === "1053328889956532234") {
+		member.createDM().then((dm) => {
+			dm.send(
+				"Un nouveau membre a rejoint le serveur de devloppement de Damien"
+			);
+			setTimeout(() => {
+				dm.send(
+					"Vous n'avez accès qu'au channel dev-bot ainsi qu'aux channels vocaux"
+				);
+			}, 1000);
+		});
+		setTimeout(() => {
+			member.roles.add("1276297734898454629");
+			member.createDM().then((dm) => {
+				dm.send(
+					"Vous avez reçu le role " +
+						member.guild.roles.cache.get("1276297734898454629").name
+				);
+			});
+		}, 3000);
+	}
 });
 
 // Detect when a message is send in channel dev-bot and reply with a message
