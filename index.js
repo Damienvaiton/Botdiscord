@@ -35,6 +35,8 @@ const functions = require("./functions.js");
 
 const insultes = require("./assets/files/bad-words-fr.js");
 
+const messages = require("./assets/files/messages.js");
+
 // Filter the message to detect insults
 const filter = new Filter();
 
@@ -56,10 +58,21 @@ client.once(Events.ClientReady, (readyClient) => {
 // Send a message to a specific channel when the client is ready
 
 client.on(Events.ClientReady, (readyClient) => {
+	console.log(messages.MessageUp.length);
 	const channel = readyClient.channels.cache.find(
 		(channel) => channel.name === "dev-bot"
 	);
-	// channel.send("@everyone Je m'appelle Mangeuse de Kinoa et je suis là pour vous servir !");
+	channel.send(
+		messages.MessageUp[
+			Math.floor(Math.random() * messages.MessageUp.length - 1)
+		]
+	);
+	const random = Math.floor(Math.random() * 5);
+	if (random === 1) {
+		setTimeout(() => {
+			channel.send("L'auteur de ce bot est un génie");
+		}, 1000);
+	}
 });
 
 client.on(Events.GuildMemberAdd, (member) => {
@@ -169,7 +182,7 @@ client.on(Events.MessageCreate, async (message) => {
 		message.channel.send("Messages supprimés").then((msg) => {
 			msg.delete({ timeout: 50000 });
 		});
-	} else if (command === "botclear") {
+	} else if (command === "bot-clear") {
 		if (message.member.permissions.has("Administrator")) {
 			// This command removes all messages from the bot
 			const amount = parseInt(args[0]);
@@ -191,6 +204,21 @@ client.on(Events.MessageCreate, async (message) => {
 			message.channel.send("Messages supprimés").then((msg) => {
 				msg.delete({ timeout: 50000 });
 			});
+		} else {
+			message.reply("Vous n'avez pas les droits pour cette commande");
+		}
+	} else if (command === "bot-down") {
+		if (message.member.permissions.has("Administrator")) {
+			const channel = client.channels.cache.find(
+				(channel) => channel.name === "dev-bot"
+			);
+			channel.send(
+				messages.MessageDown[
+					Math.floor(Math.random() * messages.MessageDown.length)
+				]
+			);
+
+			client.destroy();
 		} else {
 			message.reply("Vous n'avez pas les droits pour cette commande");
 		}
@@ -363,6 +391,11 @@ client.on(Events.MessageCreate, async (message) => {
 });
 
 client.on(Events.MessageCreate, async (message) => {});
+
+// Commmand to down the bot
+client.on(Events.MessageCreate, async (message) => {
+	if (message.author.bot) return;
+});
 
 // Log in to Discord with your client's token
 client.login(token);
