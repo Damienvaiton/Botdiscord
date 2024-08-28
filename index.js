@@ -222,27 +222,7 @@ client.on(Events.MessageCreate, async (message) => {
 
 	const args = message.content.slice(prefix.length).trim().split(/ +/);
 	const command = args.shift().toLowerCase();
- if (command === "clear") {
-		// This command removes all messages from the user who write the command in the channel, up to 100.
-		const user = message.author;
-		const amount = parseInt(args[0]);
-
-		if (isNaN(amount)) {
-			return message.reply("Il faut entrer un nombre !");
-		} else if (amount <= 1 || amount > 100) {
-			return message.reply("Il faut entrer un nombre entre 1 et 100 exclus !");
-		}
-
-		message.channel.messages.fetch({ limit: amount }).then((messages) => {
-			const userMessages = messages.filter((msg) => msg.author.id === user.id);
-			message.channel.bulkDelete(userMessages);
-		});
-
-		// Fait un message qui se supprime au bout de 5 secondes
-		message.channel.send("Messages supprimés").then((msg) => {
-			msg.delete({ timeout: 50000 });
-		});
-	} else if (command === "bot-clear") {
+	if (command === "bot-clear") {
 		if (message.member.permissions.has("Administrator")) {
 			// This command removes all messages from the bot
 			const amount = parseInt(args[0]);
