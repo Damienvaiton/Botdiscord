@@ -18,7 +18,22 @@ MessageDown = [
 	"@everyone L'histoire ne nous fait jamais vraiment ses adieux. Elle nous dit simplement : À bientôt ! \nJe vous dis donc à bientôt !",
 ];
 
+MessageHere = [
+	"Présent !",
+	"Je suis là !",
+	"Je suis là, mais je suis en train de manger mon Kinoa !",
+	"Putain, je suis là, mais j'ai faim, quelqu'un a des graines de Kinoa ?",
+	"https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/drivers/2024Drivers/stroll",
+	"https://png.pngtree.com/recommend-works/png-clipart/20240516/ourmid/pngtree-duck-meme-sticker-tshirt-illustration-png-image_12476679.png",
+	"Qui me derange pendant que je mange mon Kinoa ?",
+	"https://www.youtube.com/watch?v=twC8AJyfdEo",
+	"Quel fichtre personnage ose me déranger pendant que je mange mon Kinoa ?",
+	"Oh je jure que la prochaine personne qui me dérange pendant que je mange mon Kinoa, je lui fais bouffer de force !",
+	
+];
+
 module.exports = {
 	MessageUp,
 	MessageDown,
+	MessageHere,
 };

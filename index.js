@@ -19,6 +19,8 @@ const Filter = require("bad-words");
 const axios = require("axios");
 const { CommandKit } = require("commandkit");
 
+
+
 // Create a new client instance
 const client = new Client({
 	intents: [
@@ -96,6 +98,21 @@ client.on(Events.GuildMemberAdd, (member) => {
 				);
 			});
 		}, 3000);
+	}
+});
+
+// Check if the bot is on
+client.on(Events.MessageCreate, async (message) => {
+	if (message.author.bot) return;
+	if (message.channel.name === "dev-bot") {
+		// Si on mentionne le bot sans rien d'autre alors on répond présent
+		if (message.content === "<@1264264462840369212>") {
+			message.reply(
+				messages.MessageHere[
+					Math.floor(Math.random() * messages.MessageHere.length)
+				]
+			);
+		}
 	}
 });
 
@@ -310,11 +327,29 @@ client.on(Events.MessageCreate, async (message) => {
 		userQuiz.nbHit += 1;
 		if (userQuiz.id === 0) {
 			const answer = userQuiz.countryName;
+			if (
+				(answer === "France" && message.content === "Algeria") ||
+				message.content === "Morocco" ||
+				message.content === "Tunisia" ||
+				message.content === "Arabes" ||
+				message.content === "Maghreb"
+			) {
+				message.reply(
+					"Bravo, vous avez trouvé la bonne réponse ! Vous avez trouvé en " +
+						userQuiz.nbHit +
+						" coups"
+				);
+
+				delete quizState[message.author.id];
+			}
 			if (message.content === answer) {
 				message.reply(
 					"Bravo, vous avez trouvé la bonne réponse ! Vous avez trouvé en " +
 						userQuiz.nbHit +
 						" coups"
+				);
+				message.reply(
+					"https://servimg.eyrolles.com/static/media/9089/9782307519089_internet_h1400.jpg"
 				);
 				delete quizState[message.author.id];
 			} else if (message.content === "indice") {
