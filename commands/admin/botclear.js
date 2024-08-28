@@ -11,6 +11,15 @@ module.exports = {
 				.setRequired(true)
 		),
 	async execute(interaction) {
+		//This command is only for admins
+		if (!interaction.member.permissions.has("Administrator")) {
+			return interaction.reply({
+				content:
+					"Vous n'avez pas la permission d'utiliser cette commande. Seuls les administrateurs peuvent l'utiliser.",
+				ephemeral: true,
+			});
+		}
+
 		const amount = interaction.options.getInteger("nombre");
 
 		if (amount <= 1 || amount > 100) {
@@ -22,18 +31,7 @@ module.exports = {
 
 		await interaction.channel.bulkDelete(amount, true).catch((error) => {
 			console.error(error);
-			if (
-				error instanceof RangeError &&
-				error.message.includes("BitFieldInvalid")
-			) {
-				return interaction.reply({
-					content:
-						"Vous n'avais pas la permission d'envoyer des commands d'action sur le bot.",
-					ephemeral: true,
-				});
-			}
-
-			interaction.reply({
+			return interaction.reply({
 				content: "Il y a eu une erreur en essayant de supprimer les messages.",
 				ephemeral: true,
 			});
