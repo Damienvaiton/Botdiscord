@@ -1,25 +1,13 @@
 // Require the necessary discord.js classes
-const {
-	Client,
-	Events,
-	GatewayIntentBits,
-	transformResolved,
-} = require("discord.js");
+const { Client, Events, GatewayIntentBits, Collection } = require("discord.js");
 const { token, prefix } = require("./config.json");
-const {
-	joinVoiceChannel,
-	createAudioPlayer,
-	createAudioResource,
-	AudioPlayerStatus,
-	VoiceConnectionStatus,
-} = require("@discordjs/voice");
+const fs = require("fs");
+const path = require("path");
 
 // List of required modules
 const Filter = require("bad-words");
 const axios = require("axios");
 const { CommandKit } = require("commandkit");
-
-
 
 // Create a new client instance
 const client = new Client({
@@ -38,6 +26,46 @@ const functions = require("./functions.js");
 const insultes = require("./assets/files/bad-words-fr.js");
 
 const messages = require("./assets/files/messages.js");
+
+client.commands = new Collection();
+
+const commandsPath = path.join(__dirname, "commands");
+const commandAdminPath = path.join(__dirname, "commands/admin");
+const commandFiles = fs
+	.readdirSync(commandsPath)
+	.filter((file) => file.endsWith(".js"));
+
+const commandAdminFiles = fs
+	.readdirSync(commandAdminPath)
+	.filter((file) => file.endsWith(".js"));
+
+for (const file of commandFiles) {
+	try {
+		const command = require(path.join(commandsPath, file));
+		console.log(`Chargement de la commande : ${file}`);
+		if ("data" in command && "execute" in command) {
+			client.commands.set(command.data.name, command);
+		} else {
+			console.warn(
+				`Le fichier de commande ${file} est manquant des propriétés nécessaires.`
+			);
+		}
+	} catch (error) {
+		console.error(`Erreur de chargement de la commande ${file}:`, error);
+	}
+}
+
+for (const file of commandAdminFiles) {
+	try {
+		const command = require(path.join(commandAdminPath, file));
+		console.log(`Chargement de la commande : ${file}`);
+		if ("data" in command && "execute" in command) {
+			client.commands.set(command.data.name, command);
+		}
+	} catch (error) {
+		console.error(`Erreur de chargement de la commande ${file}:`, error);
+	}
+}
 
 // Filter the message to detect insults
 const filter = new Filter();
@@ -59,8 +87,23 @@ client.once(Events.ClientReady, (readyClient) => {
 
 // Send a message to a specific channel when the client is ready
 
-client.on(Events.ClientReady, (readyClient) => {
-	console.log(messages.MessageUp.length);
+client.on(Events.ClientReady, async (readyClient) => {
+	// get the id of the server where the bot is install
+	const guildId = "1053328889956532234";
+	const guild = client.guilds.cache.get(guildId);
+
+	if (!guild) {
+		console.log("Guild not found");
+		return;
+	}
+
+	try {
+		await guild.commands.set(client.commands.map((command) => command.data));
+		console.log("Commandes slash enregistrées");
+	} catch (error) {
+		console.error("Erreur lors de l'enregistrement des commandes :", error);
+	}
+	/*
 	const channel = readyClient.channels.cache.find(
 		(channel) => channel.name === "dev-bot"
 	);
@@ -74,7 +117,7 @@ client.on(Events.ClientReady, (readyClient) => {
 		setTimeout(() => {
 			channel.send("L'auteur de ce bot est un génie");
 		}, 1000);
-	}
+	}*/
 });
 
 client.on(Events.GuildMemberAdd, (member) => {
@@ -131,9 +174,7 @@ client.on(Events.MessageCreate, async (message) => {
 		const voiceChannel = message.guild.channels.cache.find(
 			(channel) => channel.name === "Général"
 		);
-		if (transformedMessage.content === "ping") {
-			message.reply("pong");
-		} else if (
+		if (
 			transformedMessage.includes("koi") ||
 			transformedMessage.includes("quoi")
 		) {
@@ -158,28 +199,30 @@ client.on(Events.MessageCreate, async (message) => {
 	}
 });
 
+client.on(Events.InteractionCreate, async (interaction) => {
+	if (!interaction.isCommand()) return;
+
+	const command = client.commands.get(interaction.commandName);
+
+	if (!command) return;
+
+	try {
+		await command.execute(interaction);
+	} catch (error) {
+		console.error(error);
+		await interaction.reply({
+			content: "Il y a eu une erreur lors de l'exécution de cette commande !",
+			ephemeral: true,
+		});
+	}
+});
+
 client.on(Events.MessageCreate, async (message) => {
 	if (message.author.bot || !message.content.startsWith(prefix)) return;
 
 	const args = message.content.slice(prefix.length).trim().split(/ +/);
 	const command = args.shift().toLowerCase();
-
-	if (command === "ping") {
-		message.reply("Pong!");
-	} else if (command === "date") {
-		message.reply("nous sommes le " + functions.getCurrentDate());
-	} else if (command === "time") {
-		message.reply("il est " + functions.getCurrentTime());
-	} else if (command === "datetime") {
-		message.reply(functions.getCurrentDateTime());
-	} else if (command === "bingo") {
-		message.channel.send(
-			"@everyone \n Un bingo a été lancé par " +
-				message.author.username +
-				" ! \n" +
-				"On recherche un nombre en 1 et 100 et tout le monde peut participer !"
-		);
-	} else if (command === "clear") {
+ if (command === "clear") {
 		// This command removes all messages from the user who write the command in the channel, up to 100.
 		const user = message.author;
 		const amount = parseInt(args[0]);
@@ -236,6 +279,7 @@ client.on(Events.MessageCreate, async (message) => {
 			);
 
 			client.destroy();
+			console.log("Bot was down by a command");
 		} else {
 			message.reply("Vous n'avez pas les droits pour cette commande");
 		}
