@@ -207,7 +207,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
 	if (!command) return;
 
 	try {
-		await command.execute(interaction);
+		if (command.requiresQuizState) {
+			await command.execute(interaction, quizState);
+		} else {
+			await command.execute(interaction);
+		}
 	} catch (error) {
 		console.error(error);
 		await interaction.reply({
@@ -222,77 +226,7 @@ client.on(Events.MessageCreate, async (message) => {
 
 	const args = message.content.slice(prefix.length).trim().split(/ +/);
 	const command = args.shift().toLowerCase();
-	if (command === "bot-clear") {
-		if (message.member.permissions.has("Administrator")) {
-			// This command removes all messages from the bot
-			const amount = parseInt(args[0]);
-
-			if (isNaN(amount)) {
-				return message.reply("Il faut entrer un nombre !");
-			} else if (amount <= 1 || amount > 100) {
-				return message.reply(
-					"Il faut entrer un nombre entre 1 et 100 exclus !"
-				);
-			}
-
-			//delete the numer of the message from the bot
-			message.channel.messages.fetch({ limit: amount }).then((messages) => {
-				const botMessages = messages.filter((msg) => msg.author.bot);
-				message.channel.bulkDelete(botMessages);
-			});
-
-			message.channel.send("Messages supprimés").then((msg) => {
-				msg.delete({ timeout: 50000 });
-			});
-		} else {
-			message.reply("Vous n'avez pas les droits pour cette commande");
-		}
-	} else if (command === "bot-down") {
-		if (message.member.permissions.has("Administrator")) {
-			const channel = client.channels.cache.find(
-				(channel) => channel.name === "dev-bot"
-			);
-			channel.send(
-				messages.MessageDown[
-					Math.floor(Math.random() * messages.MessageDown.length)
-				]
-			);
-
-			client.destroy();
-			console.log("Bot was down by a command");
-		} else {
-			message.reply("Vous n'avez pas les droits pour cette commande");
-		}
-	} else if (command === "quizdrapeau") {
-		axios
-			.get("https://restcountries.com/v3.1/all")
-			.then((response) => {
-				const data = response.data;
-				const randomCountry = data[Math.floor(Math.random() * data.length)];
-				const countryName = randomCountry.name.common;
-				const flag = randomCountry.flags.png;
-				const capital = randomCountry.capital[0];
-
-				quizState[message.author.id] = {
-					id: 0,
-					countryName,
-					capital,
-					active: true,
-					nbHit: 0,
-				};
-
-				message.channel.send("Quel est le drapeau de ce pays ? ");
-				message.channel.send(flag);
-				message.channel.send("Répondez avec le nom du pays");
-				message.channel.send("Vous pouvez avoir un indice en tapant 'indice'");
-				message.channel.send("Vous pouvez abandonner en tapant 'abandon'");
-
-				//clear the cache
-			})
-			.catch((error) => {
-				console.log(error);
-			});
-	} else if (command === "quizcapital") {
+	if (command === "quizcapital") {
 		axios
 			.get("https://restcountries.com/v3.1/all")
 			.then((response) => {
@@ -347,34 +281,18 @@ client.on(Events.MessageCreate, async (message) => {
 	if (message.author.bot) return;
 
 	const userQuiz = quizState[message.author.id];
+	console.log(userQuiz);
 	if (userQuiz && userQuiz.active) {
 		userQuiz.nbHit += 1;
 		if (userQuiz.id === 0) {
 			const answer = userQuiz.countryName;
-			if (
-				(answer === "France" && message.content === "Algeria") ||
-				message.content === "Morocco" ||
-				message.content === "Tunisia" ||
-				message.content === "Arabes" ||
-				message.content === "Maghreb"
-			) {
-				message.reply(
-					"Bravo, vous avez trouvé la bonne réponse ! Vous avez trouvé en " +
-						userQuiz.nbHit +
-						" coups"
-				);
-
-				delete quizState[message.author.id];
-			}
 			if (message.content === answer) {
 				message.reply(
 					"Bravo, vous avez trouvé la bonne réponse ! Vous avez trouvé en " +
 						userQuiz.nbHit +
 						" coups"
 				);
-				message.reply(
-					"https://servimg.eyrolles.com/static/media/9089/9782307519089_internet_h1400.jpg"
-				);
+				
 				delete quizState[message.author.id];
 			} else if (message.content === "indice") {
 				message.reply("La capitale de ce pays est " + userQuiz.capital);
