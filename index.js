@@ -287,12 +287,14 @@ client.on(Events.MessageCreate, async (message) => {
 		if (userQuiz.id === 0) {
 			const answer = userQuiz.countryName;
 			if (message.content === answer) {
+				const message = userQuiz.nbHit === 1 ? "essai !" : "essais !";
 				message.reply(
 					"Bravo, vous avez trouvé la bonne réponse ! Vous avez trouvé en " +
 						userQuiz.nbHit +
-						" coups"
+						" " +
+						message
 				);
-				
+
 				delete quizState[message.author.id];
 			} else if (message.content === "indice") {
 				message.reply("La capitale de ce pays est " + userQuiz.capital);
