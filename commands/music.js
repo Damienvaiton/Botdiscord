@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
+const { createReadStream } = require("fs");
 const {
 	joinVoiceChannel,
 	createAudioPlayer,
@@ -7,6 +8,7 @@ const {
 	AudioPlayerStatus,
 	entersState,
 	VoiceConnectionStatus,
+	StreamType,
 } = require("@discordjs/voice");
 const { ChannelType } = require("discord.js");
 
@@ -68,9 +70,12 @@ module.exports = {
 					// Jouer le son
 					const player = createAudioPlayer();
 					const resource = createAudioResource(
-						path.join(__dirname, "./assets/audio/feur.mp3")
+						createReadStream(path.join(__dirname, "../assets/audio/aube.wav")),
+						{
+							inputType: StreamType.Arbitrary,
+						}
 					);
-					const audioPath = path.join(__dirname, "../assets/audio/feur.mp3");
+					const audioPath = path.join(__dirname, "../assets/audio/aube.wav");
 
 					// Affiche le chemin dans la console pour débogage
 					console.log("Chemin du fichier audio:", audioPath);
@@ -81,17 +86,19 @@ module.exports = {
 							"Je joue de la musique à l'adresse suivante : " + audioPath,
 						ephemeral: true,
 					});
-
-					player.play(resource);
 					player.on("stateChange", (oldState, newState) => {
 						console.log(
 							`Audio player state changed from ${oldState.status} to ${newState.status}`
 						);
 					});
-
 					player.on("error", (error) => {
 						console.error("Erreur du player audio :", error);
 					});
+
+					//test d ajouter un wait avant de jouer le son
+					await new Promise((resolve) => setTimeout(resolve, 1000));
+
+					player.play(resource);
 
 					connection.subscribe(player);
 				} catch (error) {
