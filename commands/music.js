@@ -70,7 +70,28 @@ module.exports = {
 					const resource = createAudioResource(
 						path.join(__dirname, "./assets/audio/feur.mp3")
 					);
+					const audioPath = path.join(__dirname, "../assets/audio/feur.mp3");
+
+					// Affiche le chemin dans la console pour débogage
+					console.log("Chemin du fichier audio:", audioPath);
+
+					// Utilise la variable dans ta réponse
+					await interaction.reply({
+						content:
+							"Je joue de la musique à l'adresse suivante : " + audioPath,
+						ephemeral: true,
+					});
+
 					player.play(resource);
+					player.on("stateChange", (oldState, newState) => {
+						console.log(
+							`Audio player state changed from ${oldState.status} to ${newState.status}`
+						);
+					});
+
+					player.on("error", (error) => {
+						console.error("Erreur du player audio :", error);
+					});
 
 					connection.subscribe(player);
 				} catch (error) {
@@ -81,16 +102,27 @@ module.exports = {
 				}
 			} else if (botChannel.id === voiceChannel.id) {
 				// Réponse à l'utilisateur
+				// Déconnexion du bot
 				await interaction.reply({
-					content: "Bye bye",
+					content: "Je me déconnecte, à bientôt !",
 					ephemeral: true,
 				});
 
-				// Déconnexion du bot
-				const connection = getVoiceConnection(interaction.guild.id);
-				if (connection) {
-					connection.destroy();
-				}
+				// Ajoute un délai avant de déconnecter pour s'assurer que la réponse est envoyée
+				setTimeout(() => {
+					const connection = getVoiceConnection(interaction.guild.id);
+					if (connection) {
+						console.log("Tentative de déconnexion du salon vocal");
+						try {
+							connection.destroy();
+							console.log("Déconnexion réussie");
+						} catch (error) {
+							console.error("Erreur lors de la déconnexion:", error);
+						}
+					} else {
+						console.log("Aucune connexion trouvée pour ce serveur");
+					}
+				}, 500);
 			}
 		}
 	},

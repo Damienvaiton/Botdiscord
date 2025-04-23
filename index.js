@@ -3,6 +3,7 @@ const { Client, Events, GatewayIntentBits, Collection } = require("discord.js");
 const { token, prefix } = require("./config.json");
 const fs = require("fs");
 const path = require("path");
+const sodium = require("libsodium-wrappers");
 
 // List of required modules
 const Filter = require("bad-words");
@@ -66,6 +67,10 @@ for (const file of commandAdminFiles) {
 		console.error(`Erreur de chargement de la commande ${file}:`, error);
 	}
 }
+
+sodium.ready.then(() => {
+	console.log("libsodium prêt !");
+});
 
 // Filter the message to detect insults
 const filter = new Filter();

@@ -1,16 +1,24 @@
-FROM node:current-alpine
+FROM node:23-alpine
 
-# Installer ffmpeg pour la lecture audio
-RUN apk update && apk add ffmpeg
-
-# Dossier de travail
 WORKDIR /app
 
-# Copier package.json et installer les dépendances
+# Installer les dépendances nécessaires pour l'audio
+RUN apk add --no-cache ffmpeg python3 g++ make libtool autoconf automake \
+    && apk add --no-cache --virtual .build-deps git curl build-base \
+    && apk add --no-cache libsodium-dev opus-dev
+
+# Copier package.json et package-lock.json
 COPY package*.json ./
+
+
+# Installer les dépendances npm
 RUN npm install
 
-# Copier le reste du projet
+# Copier le reste des fichiers
 COPY . .
 
+# Exposer le port si nécessaire
+EXPOSE 3000
+
+# Démarrer le bot
 CMD ["node", "index.js"]

@@ -1,11 +1,13 @@
 version: "3.8"
-
 services:
   discord-bot:
-    build: .
-    container_name: discord-bot
-    restart: unless-stopped
+    build:
+      context: .
     volumes:
-      - ./assets:/app/assets
-      - ./conf.json:/app/conf.json
-    command: ["node", "index.js"]
+      - C:/Users/damie/OneDrive/Bureau/Projets/Botdiscord:/app  # Lier le dossier local au conteneur
+    ports:
+      - "3000:3000"  # Si ton bot écoute sur un port
+    environment:
+      - NODE_ENV=development
+    command: node index.js  # Commande pour démarrer le bot
+    restart: unless-stopped  # Redémarrer le conteneur sauf si arrêté manuellement

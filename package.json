@@ -16,6 +16,7 @@
     "commandkit": "^0.1.10",
     "discord-api-types": "^0.37.98",
     "discord.js": "^14.15.3",
+    "libsodium-wrappers": "^0.7.15",
     "mysql": "^2.18.1",
     "mysql2": "^3.10.3",
     "spotify-api.js": "^9.2.5",
